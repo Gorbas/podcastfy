@@ -46,7 +46,7 @@ class TestGenAIPodcast(unittest.TestCase):
         """
         content_generator = ContentGenerator(model_name=MODEL_NAME, api_key_label=API_KEY_LABEL)
         input_text = "United States of America"
-        result = content_generator.generate_qa_content(input_text)
+        result, prompt_params = content_generator.generate_qa_content(input_text)
         self.assertIsNotNone(result)
         self.assertNotEqual(result, "")
         self.assertIsInstance(result, str)
@@ -59,7 +59,7 @@ class TestGenAIPodcast(unittest.TestCase):
         content_generator = ContentGenerator(model_name=MODEL_NAME, api_key_label=API_KEY_LABEL, conversation_config=conversation_config)
         input_text = "United States of America"
 
-        result = content_generator.generate_qa_content(input_text)
+        result, prompt_params = content_generator.generate_qa_content(input_text)
 
         self.assertIsNotNone(result)
         self.assertNotEqual(result, "")
@@ -78,7 +78,7 @@ class TestGenAIPodcast(unittest.TestCase):
         with tempfile.NamedTemporaryFile(
             mode="w+", suffix=".txt", delete=False
         ) as temp_file:
-            result = content_generator.generate_qa_content(
+            result, prompt_params = content_generator.generate_qa_content(
                 input_texts="",  # Empty string for input_texts
                 image_file_paths=image_paths,
                 output_filepath=temp_file.name,
@@ -107,7 +107,7 @@ class TestGenAIPodcast(unittest.TestCase):
         extracted_content = pdf_extractor.extract_content(pdf_file)
 
         # Generate Q&A content from the extracted text
-        result = content_generator.generate_qa_content(input_texts=extracted_content)
+        result, prompt_params = content_generator.generate_qa_content(input_texts=extracted_content)
 
         self.assertIsNotNone(result)
         self.assertNotEqual(result, "")
@@ -118,7 +118,7 @@ class TestGenAIPodcast(unittest.TestCase):
         raw_text = "The wonderful world of LLMs."
         content_generator = ContentGenerator(model_name=MODEL_NAME, api_key_label=API_KEY_LABEL)
 
-        result = content_generator.generate_qa_content(input_texts=raw_text)
+        result, prompt_params = content_generator.generate_qa_content(input_texts=raw_text)
 
         self.assertIsNotNone(result)
         self.assertNotEqual(result, "")
@@ -135,7 +135,7 @@ class TestGenAIPodcast(unittest.TestCase):
         # Generate content for the topic
         content = extractor.generate_topic_content(topic)
 
-        result = content_generator.generate_qa_content(input_texts=content)
+        result, prompt_params = content_generator.generate_qa_content(input_texts=content)
 
         self.assertIsNotNone(result)
         self.assertNotEqual(result, "")

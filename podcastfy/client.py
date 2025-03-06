@@ -18,8 +18,12 @@ from podcastfy.utils.config_conversation import load_conversation_config
 from podcastfy.utils.logger import setup_logger
 from typing import List, Optional, Dict, Any
 import copy
-
 import logging
+
+import urllib.request
+import urllib.parse
+import json
+import mimetypes
 
 # Configure logging to show all levels and write to both file and console
 """ logging.basicConfig(
@@ -70,6 +74,7 @@ def process_content(
         # Get output directories from conversation config
         tts_config = conv_config.get("text_to_speech", {})
         output_directories = tts_config.get("output_directories", {})
+        prompt_params = {}
 
         if transcript_file:
             logger.info(f"Using transcript file: {transcript_file}")
@@ -89,7 +94,7 @@ def process_content(
             )
 
             combined_content = ""
-            
+
             if urls:
                 logger.info(f"Processing {len(urls)} links")
                 contents = [content_extractor.extract_content(link) for link in urls]
@@ -113,12 +118,13 @@ def process_content(
                 output_directories.get("transcripts", "data/transcripts"),
                 random_filename,
             )
-            qa_content = content_generator.generate_qa_content(
+            prompt_params = content_generator.generate_qa_content(
                 combined_content,
                 image_file_paths=image_paths or [],
                 output_filepath=transcript_filepath,
                 longform=longform
             )
+            qa_content = prompt_params["transcript"]
 
         if generate_audio:
             api_key = None
@@ -132,15 +138,15 @@ def process_content(
             )
 
             random_filename = f"podcast_{uuid.uuid4().hex}.mp3"
-            audio_file = os.path.join(
+            prompt_params["audio_file"] = os.path.join(
                 output_directories.get("audio", "data/audio"), random_filename
             )
             text_to_speech.convert_to_speech(qa_content, audio_file)
             logger.info(f"Podcast generated successfully using {tts_model} TTS model")
-            return audio_file
         else:
             logger.info(f"Transcript generated successfully: {transcript_filepath}")
-            return transcript_filepath
+
+        return prompt_params
 
     except Exception as e:
         logger.error(f"An error occurred in the process_content function: {str(e)}")
@@ -193,9 +199,9 @@ def main(
         None, "--topic", "-tp", help="Topic to generate podcast about"
     ),
     longform: bool = typer.Option(
-        False, 
-        "--longform", 
-        "-lf", 
+        False,
+        "--longform",
+        "-lf",
         help="Generate long-form content (only available for text input without images)"
     ),
 ):
@@ -289,7 +295,7 @@ def generate_podcast(
     api_key_label: Optional[str] = None,
     topic: Optional[str] = None,
     longform: bool = False,
-) -> Optional[str]:
+) -> Optional[dict]:
     """
     Generate a podcast or transcript from a list of URLs, a file containing URLs, a transcript file, or image files.
 
