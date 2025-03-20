@@ -6,25 +6,25 @@ import re
 
 class TTSProvider(ABC):
     """Abstract base class that defines the interface for TTS providers."""
-    
+
     # Common SSML tags supported by most providers
     COMMON_SSML_TAGS: ClassVar[List[str]] = [
         'lang', 'p', 'phoneme', 's', 'sub'
     ]
-    
+
     @abstractmethod
     def generate_audio(self, text: str, voice: str, model: str, voice2: str) -> bytes:
         """
         Generate audio from text using the provider's API.
-        
+
         Args:
             text: Text to convert to speech
             voice: Voice ID/name to use
             model: Model ID/name to use
-            
+
         Returns:
             Audio data as bytes
-            
+
         Raises:
             ValueError: If invalid parameters are provided
             RuntimeError: If audio generation fails
@@ -34,16 +34,16 @@ class TTSProvider(ABC):
     def get_supported_tags(self) -> List[str]:
         """
         Get set of SSML tags supported by this provider.
-        
+
         Returns:
             Set of supported SSML tag names
         """
         return self.COMMON_SSML_TAGS.copy()
-    
+
     def validate_parameters(self, text: str, voice: str, model: str, voice2: str = None) -> None:
         """
         Validate input parameters before generating audio.
-        
+
         Raises:
             ValueError: If any parameter is invalid
         """
@@ -53,7 +53,7 @@ class TTSProvider(ABC):
             raise ValueError("Voice must be specified")
         if not model:
             raise ValueError("Model must be specified")
-        
+
     def split_qa(self, input_text: str, ending_message: str, supported_tags: List[str] = None) -> List[Tuple[str, str]]:
         """
         Split the input text into question-answer pairs.
@@ -66,13 +66,13 @@ class TTSProvider(ABC):
                 List[Tuple[str, str]]: A list of tuples containing (Person1, Person2) dialogues.
         """
         input_text = self.clean_tss_markup(input_text, supported_tags=supported_tags)
-        
+
         # Add placeholder if input_text starts with <Person2>
         if input_text.strip().startswith("<Person2>"):
             input_text = "<Person1> Humm... </Person1>" + input_text
 
         # Add ending message to the end of input_text
-        if input_text.strip().endswith("</Person1>"):
+        if input_text.strip().endswith("</Person1>") and ending_message.strip() != "":
             input_text += f"<Person2>{ending_message}</Person2>"
 
         # Regular expression pattern to match Person1 and Person2 dialogues
@@ -116,9 +116,9 @@ class TTSProvider(ABC):
 
         # Ensure closing tags for additional tags are preserved
         for tag in additional_tags:
-            cleaned_text = re.sub(f'<{tag}>(.*?)(?=<(?:{"|".join(additional_tags)})>|$)', 
-                                f'<{tag}>\\1</{tag}>', 
-                                cleaned_text, 
+            cleaned_text = re.sub(f'<{tag}>(.*?)(?=<(?:{"|".join(additional_tags)})>|$)',
+                                f'<{tag}>\\1</{tag}>',
+                                cleaned_text,
                                 flags=re.DOTALL)
 
         return cleaned_text.strip()
