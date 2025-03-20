@@ -72,7 +72,7 @@ class TTSProvider(ABC):
             input_text = "<Person1> Humm... </Person1>" + input_text
 
         # Add ending message to the end of input_text
-        if input_text.strip().endswith("</Person1>") and ending_message.strip() != "":
+        if input_text.strip().endswith("</Person1>"):
             input_text += f"<Person2>{ending_message}</Person2>"
 
         # Regular expression pattern to match Person1 and Person2 dialogues

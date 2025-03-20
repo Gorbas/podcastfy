@@ -116,27 +116,27 @@ class TextToSpeech:
 
                     logger.info(f"Starting audio processing with {len(audio_data_list)} chunks")
                     combined = AudioSegment.empty()
-                    
+
                     for i, chunk in enumerate(audio_data_list):
                         # Save chunk to temporary file
                         #temp_file = "./tmp.mp3"
                         #with open(temp_file, "wb") as f:
                         #    f.write(chunk)
-                        
+
                         segment = AudioSegment.from_file(io.BytesIO(chunk))
                         logger.info(f"################### Loaded chunk {i}, duration: {len(segment)}ms")
-                        
+
                         combined += segment
-                    
+
                     # Export with high quality settings
                     os.makedirs(os.path.dirname(output_file), exist_ok=True)
                     combined.export(
-                        output_file, 
+                        output_file,
                         format=self.audio_format,
                         codec="libmp3lame",
                         bitrate="320k"
                     )
-                    
+
                 except Exception as e:
                     logger.error(f"Error during audio processing: {str(e)}")
                     raise
@@ -168,10 +168,11 @@ class TextToSpeech:
                 voice = provider_config.get("default_voices", {}).get(speaker_type)
                 model = provider_config.get("model")
 
-                audio_data = self.provider.generate_audio(content, voice, model)
-                with open(temp_file, "wb") as f:
-                    f.write(audio_data)
-                audio_files.append(temp_file)
+                if content.strip() != "":
+                    audio_data = self.provider.generate_audio(content, voice, model)
+                    with open(temp_file, "wb") as f:
+                        f.write(audio_data)
+                    audio_files.append(temp_file)
 
         return audio_files
 
