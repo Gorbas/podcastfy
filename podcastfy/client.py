@@ -72,7 +72,8 @@ def process_content(
         if conversation_config:
             conv_config.configure(conversation_config)
 
-        is_prompt_only = conversation_config.get("prompt_only", "no").lower() == "yes"
+        logger.info(f"Using conversation config: {json.dumps(conversation_config)}")
+        is_prompt_only = conversation_config.get("is_prompt_only", False)
 
         # Get output directories from conversation config
         tts_config = conv_config.get("text_to_speech", {})

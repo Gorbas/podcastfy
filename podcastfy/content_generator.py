@@ -6,6 +6,7 @@ LangChain and various LLM backends. It handles the interaction with the AI model
 provides methods to generate and save the generated content.
 """
 
+import json
 import os
 from typing import Optional, Dict, Any, List
 import re
@@ -884,14 +885,14 @@ class ContentGenerator:
             )
 
             logger.info("Prompt Params " + json.dumps({
-                "chain": self.chain,
+                "is_prompt_only": is_prompt_only,
                 "input_texts": input_texts,
                 "prompt_params": prompt_params
             }, indent=4) )
 
-            if (is_prompt_only) {
+            if (is_prompt_only == True):
                 self.response = json.dumps(prompt_params)
-            } else {
+            else:
                 # Generate content using selected strategy
                 self.response = strategy.generate(
                     self.chain,
@@ -913,14 +914,14 @@ class ContentGenerator:
                         file.write(self.response)
                     logger.info(f"Response content saved to {output_filepath}")
                     print(f"Transcript saved to {output_filepath}")
-            }
 
             return {
                 "transcript_file": output_filepath,
                 "transcript": self.response,
                 "chain": self.chain,
                 "input_texts": input_texts,
-                "prompt_params": prompt_params
+                "prompt_params": prompt_params,
+                "prompt": json.dumps(prompt_params)
             }
         except Exception as e:
             logger.error(f"Error generating content: {str(e)}")
