@@ -840,7 +840,7 @@ class ContentGenerator:
         image_file_paths: List[str] = [],
         output_filepath: Optional[str] = None,
         longform: bool = False,
-        is_prompt_generator_only: bool = False
+        is_prompt_only: bool = False
     ) -> dict:
         """
         Generate Q&A content based on input texts.
@@ -889,7 +889,7 @@ class ContentGenerator:
                 "prompt_params": prompt_params
             }, indent=4) )
 
-            if (is_prompt_generator_only) {
+            if (is_prompt_only) {
                 self.response = json.dumps(prompt_params)
             } else {
                 # Generate content using selected strategy

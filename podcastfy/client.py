@@ -65,14 +65,15 @@ def process_content(
         if config is None:
             config = load_config()
 
-        is_prompt_only = config.get("main", {}).get("prompt_only", "no").lower() == "yes"
-
         # Load default conversation config
         conv_config = load_conversation_config()
 
         # Update with provided config if any
         if conversation_config:
             conv_config.configure(conversation_config)
+
+        is_prompt_only = conversation_config.get("prompt_only", "no").lower() == "yes"
+
         # Get output directories from conversation config
         tts_config = conv_config.get("text_to_speech", {})
         output_directories = tts_config.get("output_directories", {})
@@ -125,7 +126,7 @@ def process_content(
                 image_file_paths=image_paths or [],
                 output_filepath=transcript_filepath,
                 longform=longform,
-                is_prompt_generator_only=is_prompt_only
+                is_prompt_only=is_prompt_only
             )
             qa_content = prompt_params["transcript"]
 
