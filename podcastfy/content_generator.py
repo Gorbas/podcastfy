@@ -839,7 +839,8 @@ class ContentGenerator:
         input_texts: str = "",
         image_file_paths: List[str] = [],
         output_filepath: Optional[str] = None,
-        longform: bool = False
+        longform: bool = False,
+        is_prompt_generator_only: bool = False
     ) -> dict:
         """
         Generate Q&A content based on input texts.
@@ -888,27 +889,31 @@ class ContentGenerator:
                 "prompt_params": prompt_params
             }, indent=4) )
 
-            # Generate content using selected strategy
-            self.response = strategy.generate(
-                self.chain,
-                input_texts,
-                prompt_params
-            )
+            if (is_prompt_generator_only) {
+                self.response = json.dumps(prompt_params)
+            } else {
+                # Generate content using selected strategy
+                self.response = strategy.generate(
+                    self.chain,
+                    input_texts,
+                    prompt_params
+                )
 
-            # Clean response using the same strategy
-            self.response = strategy.clean(
-                self.response,
-                self.content_generator_config
-            )
+                # Clean response using the same strategy
+                self.response = strategy.clean(
+                    self.response,
+                    self.content_generator_config
+                )
 
-            logger.info(f"Content generated successfully")
+                logger.info(f"Content generated successfully")
 
-            # Save output if requested
-            if output_filepath:
-                with open(output_filepath, "w") as file:
-                    file.write(self.response)
-                logger.info(f"Response content saved to {output_filepath}")
-                print(f"Transcript saved to {output_filepath}")
+                # Save output if requested
+                if output_filepath:
+                    with open(output_filepath, "w") as file:
+                        file.write(self.response)
+                    logger.info(f"Response content saved to {output_filepath}")
+                    print(f"Transcript saved to {output_filepath}")
+            }
 
             return {
                 "transcript_file": output_filepath,

@@ -65,6 +65,8 @@ def process_content(
         if config is None:
             config = load_config()
 
+        is_prompt_only = config.get("main", {}).get("prompt_only", "no").lower() == "yes"
+
         # Load default conversation config
         conv_config = load_conversation_config()
 
@@ -122,7 +124,8 @@ def process_content(
                 combined_content,
                 image_file_paths=image_paths or [],
                 output_filepath=transcript_filepath,
-                longform=longform
+                longform=longform,
+                is_prompt_generator_only=is_prompt_only
             )
             qa_content = prompt_params["transcript"]
 
@@ -294,7 +297,7 @@ def generate_podcast(
     llm_model_name: Optional[str] = None,
     api_key_label: Optional[str] = None,
     topic: Optional[str] = None,
-    longform: bool = False,
+    longform: bool = False
 ) -> Optional[dict]:
     """
     Generate a podcast or transcript from a list of URLs, a file containing URLs, a transcript file, or image files.
@@ -323,6 +326,7 @@ def generate_podcast(
         default_config = load_config()
 
         # Update config if provided
+        prompt_only = False
         if config:
             if isinstance(config, dict):
                 # Create a deep copy of the default config
@@ -330,9 +334,14 @@ def generate_podcast(
                 # Update the copy with user-provided values
                 updated_config.configure(**config)
                 default_config = updated_config
+                # Check for prompt_only in config
+                prompt_only = str(config.get("prompt_only", "no")).lower() == "yes"
             elif isinstance(config, Config):
                 # If it's already a Config object, use it directly
                 default_config = config
+                # Try to get prompt_only from Config object if possible
+                if hasattr(config, 'config') and isinstance(config.config, dict):
+                    prompt_only = str(config.config.get("prompt_only", "no")).lower() == "yes"
             else:
                 raise ValueError(
                     "Config must be either a dictionary or a Config object"
@@ -347,10 +356,14 @@ def generate_podcast(
         if tts_model is None:
             tts_model = conversation_config.get("default_tts_model", "openai")
 
+        # If prompt_only is set, force transcript_only
+        if prompt_only:
+            transcript_only = True
+
         if transcript_file:
             if image_paths:
                 logger.warning("Image paths are ignored when using a transcript file.")
-            return process_content(
+            result = process_content(
                 transcript_file=transcript_file,
                 tts_model=tts_model,
                 generate_audio=not transcript_only,
@@ -375,7 +388,7 @@ def generate_podcast(
                     "'transcript_file', 'image_paths', 'text', or 'topic'."
                 )
 
-            return process_content(
+            result = process_content(
                 urls=urls_list,
                 tts_model=tts_model,
                 generate_audio=not transcript_only,
@@ -389,6 +402,11 @@ def generate_podcast(
                 topic=topic,
                 longform=longform
             )
+
+        # If prompt_only, return the prompt instead of transcript/audio
+        if prompt_only and isinstance(result, dict) and "prompt" in result:
+            return result["prompt"]
+        return result
 
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
