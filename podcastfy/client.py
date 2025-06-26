@@ -146,7 +146,7 @@ def process_content(
             prompt_params["audio_file"] = os.path.join(
                 output_directories.get("audio", "data/audio"), random_filename
             )
-            text_to_speech.convert_to_speech(qa_content, audio_file)
+            text_to_speech.convert_to_speech(qa_content, prompt_params["audio_file"])
             logger.info(f"Podcast generated successfully using {tts_model} TTS model")
         else:
             logger.info(f"Transcript generated successfully: {transcript_filepath}")
